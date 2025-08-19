@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESSENCES-X Session Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #111b21;
+            color: #e9edef;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: #202c33;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            color: #00a884;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #2a3942;
+            color: #e9edef;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        input:focus {
+            outline: 2px solid #00a884;
+        }
+
+        button {
+            background-color: #00a884;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #008f72;
+        }
+
+        button:disabled {
+            background-color: #374045;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+
+        .success {
+            background-color: #025c4c;
+            color: #e9edef;
+        }
+
+        .error {
+            background-color: #8b0000;
+            color: #e9edef;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #00a884;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            margin-top: 2rem;
+            color: #8696a0;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://raw.githubusercontent.com/ESSENCES/ESSENCES-X/main/logo.png" alt="ESSENCES-X Logo" class="logo">
+        <h1>ESSENCES-X Session Generator</h1>
+        
+        <div class="input-group">
+            <input type="tel" id="phoneNumber" placeholder="WhatsApp number (with country code)" 
+                   pattern="[0-9+]+" title="Please enter a valid phone number with country code">
+        </div>
+        
+        <button id="generateBtn" onclick="generateSession()">Generate Session ID</button>
+        <div id="spinner" class="spinner"></div>
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <footer>
+        ESSENCES-X © 2025
+    </footer>
+
+    <script>
+        async function generateSession() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const generateBtn = document.getElementById('generateBtn');
+            const spinner = document.getElementById('spinner');
+            const status = document.getElementById('status');
+
+            if (!phoneNumber) {
+                showStatus('Please enter your WhatsApp number with country code', 'error');
+                return;
+            }
+
+            // Disable button and show spinner
+            generateBtn.disabled = true;
+            spinner.style.display = 'block';
+            status.style.display = 'none';
+
+            try {
+                const response = await fetch('/generate-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ phoneNumber }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus(`Session ID has been sent to your WhatsApp. Please check your messages.`, 'success');
+                } else {
+                    showStatus(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('Failed to generate session ID. Please try again.', 'error');
+            } finally {
+                generateBtn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        // Phone number validation
+        const phoneInput = document.getElementById('phoneNumber');
+        phoneInput.addEventListener('input', function(e) {
+            const value = e.target.value;
+            if (value && !value.match(/^[0-9+]+$/)) {
+                e.target.value = value.replace(/[^0-9+]/g, '');
+            }
+        });
+    </script>
+</body>
+</html>
